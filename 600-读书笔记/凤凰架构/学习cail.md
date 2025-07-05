@@ -1,0 +1,1 @@
+http://icyfenix.cn/architect-perspective/general-architecture/api-style/rpc.html

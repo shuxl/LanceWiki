@@ -1,3 +1,5 @@
+#python/conda
+
 以下是 Conda 常用命令的总结，涵盖环境管理、包管理、配置优化等核心操作，适用于 Linux/macOS/Windows 系统：
 
 
@@ -28,9 +30,10 @@
   ```
 • 复制环境  
 
-  ```bash
-  conda create --name new_env --clone old_env
-  ```
+```bash
+conda create --name new_env --clone old_env
+conda create --name Py312_Dify --clone Py312_ReActAgents
+```
 
 + mac默认环境
 你的 .zshrc 末尾改成这样：

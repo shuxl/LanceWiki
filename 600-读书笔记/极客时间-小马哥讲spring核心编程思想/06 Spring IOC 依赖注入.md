@@ -98,7 +98,7 @@
 
 # 12 @Inject 注入
 + @Inject 注入过程
-+ 如果 [JSR-330](../../100-java/100-Java基础/JSR/JSR-330.md) 存在于 ClassPath 中，复用 AutowiredAnnotationBeanPostProcessor 实现
++ 如果 [JSR-330](../../100-java/old/100-Java基础-old/JSR/JSR-330.md) 存在于 ClassPath 中，复用 AutowiredAnnotationBeanPostProcessor 实现
 
 # 13 Java通用注解注入原理
 + CommonAnnotationBeanPostProcessor

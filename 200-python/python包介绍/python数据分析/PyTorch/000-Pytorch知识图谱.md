@@ -1,8 +1,8 @@
 下面是一个 PyTorch 核心知识图谱的简要版，涵盖从基础到进阶的学习路径，方便你对 PyTorch 进行系统性学习。你可以基于这些模块逐步深入。
 
-+ [100-PyTorch介绍](100-PyTorch介绍.md)
-+ [110-PyTorch不同学习方向的知识图谱](110-PyTorch不同学习方向的知识图谱.md)
-+ [200-PyTorch通用基础知识](200-PyTorch通用基础知识.md)
++ [010-PyTorch介绍](010-PyTorch介绍.md)
++ [020-PyTorch不同学习方向的知识图谱](020-PyTorch不同学习方向的知识图谱.md)
++ [001-PyTorch 通用知识体系（适合入门者的系统化学习路线）](001-PyTorch%20通用知识体系（适合入门者的系统化学习路线）.md)
 
 ---
 
@@ -141,6 +141,4 @@
 2. **逐步优化：** 添加验证集、Early Stopping、模型保存、绘图。
     
 3. **看源码理解：** 如 nn.Linear、backward 内部逻辑。
-    
 4. **工程实践：** 尝试 PyTorch Lightning、FastAI 等封装库。
-    

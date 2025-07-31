@@ -608,5 +608,5 @@ groups:
 
 ### 5. 相关技术
 - [HTTP协议](../../500-基础理论/通用计算机知识/一篇搞懂TCP、HTTP、Socket、Socket连接池.md)
-- [JSON数据格式](../../200-python/python基础/02-python3%20基本数据类型.md)
+- [JSON数据格式](../../200-python/00-python语法/python基础/02-python3%20基本数据类型.md)
 - [RESTful API设计](../0201-Spring%20MVC基础.md) 

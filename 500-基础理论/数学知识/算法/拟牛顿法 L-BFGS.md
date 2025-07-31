@@ -4,7 +4,7 @@ L-BFGS 是优化算法的一种，全称是 **Limited-memory Broyden–Fletcher�
 
 + 知识
 	+ [Hessian 矩阵（海森矩阵）](../02-微积分/Hessian%20矩阵（海森矩阵）.md)
-	+ [205-PyTorch  牛顿法 与 拟牛顿法（L-BFGS）使用](../../../200-python/python包介绍/python数据分析/PyTorch/205-PyTorch%20%20牛顿法%20与%20拟牛顿法（L-BFGS）使用.md)
+	+ [205-PyTorch  牛顿法 与 拟牛顿法（L-BFGS）使用](../../../200-python/01-python库/python数据分析/PyTorch/205-PyTorch%20%20牛顿法%20与%20拟牛顿法（L-BFGS）使用.md)
 
 ---
 

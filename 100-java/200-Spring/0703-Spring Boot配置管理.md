@@ -560,4 +560,4 @@ public class ConfigurationMonitor {
 ### 5. 相关技术
 - [Java注解机制](../old/100-Java基础-old/基础/注解.md)
 - [Java反射机制](../../100-java/100-Java基础/反射/反射.md)
-- [YAML语法](../../200-python/python基础/01-python3%20基础语法.md) 
+- [YAML语法](../../200-python/00-python语法/python基础/01-python3%20基础语法.md) 

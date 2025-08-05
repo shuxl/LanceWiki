@@ -1,4 +1,4 @@
-+ 
+
 # 1 Redis 集群的设计目标
 
 > Redis-cluster是一种服务器**Sharding**技术，Redis3.0以后版本正式提供支持。Redis Cluster在设计时考虑了什么？我们不妨看下官网的介绍 [Redis Cluster Specification](https://redis.io/topics/cluster-spec#redis-cluster-goals)

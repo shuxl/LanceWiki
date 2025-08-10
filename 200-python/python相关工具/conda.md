@@ -33,6 +33,7 @@
 ```bash
 conda create --name new_env --clone old_env
 conda create --name Py312_Dify --clone Py312_ReActAgents
+conda create --name Py312_AiProject --clone python312_public
 ```
 
 + mac默认环境

@@ -19,7 +19,7 @@
 
 ## 1.4 工具链
 - [Conda 环境管理](python相关工具/conda.md)
-- [AI开发工具链](01-python库/LangChain、LangGraph、FastAPI.md)
++ [langchain 初体验](01-python库/AI管理/LangChain/langchain%20初体验.md)
 
 ## 1.5 机器学习框架
 - [PyTorch 知识图谱](01-python库/python数据分析/PyTorch/000-Pytorch知识图谱.md)

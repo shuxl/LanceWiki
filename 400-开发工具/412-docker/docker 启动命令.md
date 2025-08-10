@@ -58,3 +58,10 @@ docker search mysql
   ]
 }
 ```
+
+# 6 异常修复
+## 6.1 容器自动重启
+```
+# 关闭自动重启功能
+docker update --restart=no <容器名或容器ID>
+```

@@ -183,7 +183,7 @@ min.insync.replicas=2
 - **[Zookeeper](../zookeeper.md)**：早期版本用于元数据管理
 - **[Spring Kafka](../200-Spring/Spring%20Kafka.md)**：Spring集成Kafka
 - **[分布式系统设计](../500-基础理论/分布式模式/分布式事务模式.md)**：理解分布式一致性
-- **[消息队列对比](../rabbitmq.md)**：与其他消息队列的对比
+- **[消息队列对比](../350-rabbitMQ/rabbitmq.md)**：与其他消息队列的对比
 
 ### 扩展学习
 - **Kafka Streams**：流处理库

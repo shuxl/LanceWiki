@@ -363,7 +363,7 @@ socket.receive.buffer.bytes=102400
 ## Kafka关联的其它知识
 
 ### 相关技术栈
-- **[RabbitMQ](../rabbitmq.md)**：消息队列对比
+- **[RabbitMQ](../350-rabbitMQ/rabbitmq.md)**：消息队列对比
 - **[Zookeeper](../zookeeper.md)**：早期版本用于元数据管理
 - **[分布式系统设计](../500-基础理论/分布式模式/分布式事务模式.md)**：理解分布式一致性
 - **[Spring Kafka](../200-Spring/Spring%20Kafka.md)**：Spring集成Kafka

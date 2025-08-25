@@ -1,3 +1,4 @@
+#rabbitMq
 Exchange 
     fanout：消息全部转发到与之绑定的queue上。不需要routingkey
     direct：routeKey必须完全匹配，才会被队列接收。

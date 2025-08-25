@@ -16,7 +16,7 @@
   - Broker与分区机制
   - 生产者/消费者模型
   - 高可用设计
-- [RabbitMQ实战](./rabbitmq.md)
+- [RabbitMQ实战](350-rabbitMQ/rabbitmq.md)
 
 ## 1.3 分布式协调
 - [Zookeeper核心](./zookeeper.md)

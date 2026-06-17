@@ -14,7 +14,8 @@
 • 创建新环境（指定 Python 版本或包）  
 
   ```bash
-  conda create -n env_name python=3.9 numpy pandas
+	conda create -n env_name python=3.9
+	conda create -n env_name python=3.9 numpy pandas
   ```
 • 激活/退出环境  
 
@@ -34,6 +35,7 @@
 conda create --name new_env --clone old_env
 conda create --name Py312_Dify --clone Py312_ReActAgents
 conda create --name Py312_AiProject --clone python312_public
+conda create --name Py312_GD25 --clone Py312_AiProject
 ```
 
 + mac默认环境

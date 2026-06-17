@@ -26,7 +26,15 @@
   - 数据卷配置说明
   - 访问权限管理
 
-## 1.5 专题配置
+## 1.5 AI 开发工具
+- [Cursor 开发指南](450-cursor/)
+  - [Java 开发环境配置](450-cursor/cursor的java开发环境修正的方式.md)
+  - [前后端协同开发规范](450-cursor/Cursor前后端协同开发规范.md)
+    - OpenAPI 规范定义
+    - 前后端代码生成示例
+    - 配置文件示例
+
+## 1.6 专题配置
 - [Kafka监控平台搭建](412-docker/mysql-binlog/docker-compose.yml)
 - [MySQL主从复制配置模板](412-docker/mysql-replication/docker-compose.yml)
 - [Redis集群部署方案](../300-中间件/320-redis/C06%20-%20Redis高可拓展：分片技术（Redis%20Cluster）详解.md)

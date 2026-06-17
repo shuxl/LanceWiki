@@ -1,0 +1,498 @@
+openapi: 3.0.0
+
+# API 基本信息
+info:
+  title: 用户管理系统 API
+  version: 1.0.0
+  description: |
+    用户管理系统的 RESTful API 接口规范。
+    
+    本规范定义了用户相关的所有接口，包括：
+    - 用户列表查询（支持分页和搜索）
+    - 用户详情查询
+    - 用户创建
+    - 用户信息更新
+    - 用户删除
+    
+  contact:
+    name: API 支持团队
+    email: api-support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+# 服务器地址
+servers:
+  - url: http://localhost:8080/api
+    description: 本地开发环境
+  - url: https://api.example.com/api
+    description: 生产环境
+
+# 全局安全配置
+security:
+  - bearerAuth: []
+
+# 接口路径定义
+paths:
+  # 获取用户列表
+  /users:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取用户列表
+      description: 支持分页和搜索的用户列表查询接口
+      operationId: getUserList
+      parameters:
+        - name: page
+          in: query
+          description: 页码，从 1 开始
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - name: size
+          in: query
+          description: 每页数量
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+            example: 10
+        - name: keyword
+          in: query
+          description: 搜索关键词（匹配用户名或邮箱）
+          required: false
+          schema:
+            type: string
+            example: "张三"
+        - name: status
+          in: query
+          description: 用户状态筛选
+          required: false
+          schema:
+            $ref: '#/components/schemas/UserStatus'
+      responses:
+        '200':
+          description: 成功返回用户列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+              example:
+                code: 200
+                message: "成功"
+                data:
+                  total: 100
+                  page: 1
+                  size: 10
+                  items:
+                    - id: 1
+                      name: "张三"
+                      email: "zhangsan@example.com"
+                      status: "ACTIVE"
+                      createTime: "2024-01-01T10:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+        - 用户管理
+      summary: 创建用户
+      description: 创建新用户
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            example:
+              name: "李四"
+              email: "lisi@example.com"
+              password: "password123"
+              phone: "13800138000"
+      responses:
+        '201':
+          description: 用户创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 201
+                message: "用户创建成功"
+                data:
+                  id: 2
+                  name: "李四"
+                  email: "lisi@example.com"
+                  status: "ACTIVE"
+                  createTime: "2024-01-02T10:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: 用户已存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 409
+                message: "邮箱已被注册"
+                data: null
+
+  # 获取用户详情
+  /users/{id}:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取用户详情
+      description: 根据用户 ID 获取用户详细信息
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用户 ID
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+      responses:
+        '200':
+          description: 成功返回用户信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: "成功"
+                data:
+                  id: 1
+                  name: "张三"
+                  email: "zhangsan@example.com"
+                  phone: "13800138000"
+                  status: "ACTIVE"
+                  createTime: "2024-01-01T10:00:00Z"
+                  updateTime: "2024-01-01T10:00:00Z"
+        '404':
+          description: 用户不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 404
+                message: "用户不存在"
+                data: null
+    
+    put:
+      tags:
+        - 用户管理
+      summary: 更新用户信息
+      description: 更新指定用户的信息
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用户 ID
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+            example:
+              name: "张三（已更新）"
+              phone: "13900139000"
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: "更新成功"
+                data:
+                  id: 1
+                  name: "张三（已更新）"
+                  email: "zhangsan@example.com"
+                  phone: "13900139000"
+                  status: "ACTIVE"
+                  updateTime: "2024-01-02T10:00:00Z"
+        '404':
+          description: 用户不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    
+    delete:
+      tags:
+        - 用户管理
+      summary: 删除用户
+      description: 删除指定用户（软删除）
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用户 ID
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: "删除成功"
+                data: null
+        '404':
+          description: 用户不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+# 可复用的组件定义
+components:
+  # 安全方案
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 使用 JWT Token 进行身份认证
+
+  # 数据模型
+  schemas:
+    # 用户状态枚举
+    UserStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+        - DELETED
+      description: 用户状态
+      example: "ACTIVE"
+
+    # 用户信息
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - status
+      properties:
+        id:
+          type: integer
+          description: 用户 ID
+          example: 1
+        name:
+          type: string
+          description: 用户名
+          minLength: 1
+          maxLength: 50
+          example: "张三"
+        email:
+          type: string
+          format: email
+          description: 邮箱地址
+          example: "zhangsan@example.com"
+        phone:
+          type: string
+          description: 手机号码
+          pattern: '^1[3-9]\d{9}$'
+          example: "13800138000"
+        status:
+          $ref: '#/components/schemas/UserStatus'
+        createTime:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: "2024-01-01T10:00:00Z"
+        updateTime:
+          type: string
+          format: date-time
+          description: 更新时间
+          example: "2024-01-01T10:00:00Z"
+
+    # 创建用户请求
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          description: 用户名
+          minLength: 1
+          maxLength: 50
+          example: "李四"
+        email:
+          type: string
+          format: email
+          description: 邮箱地址
+          example: "lisi@example.com"
+        password:
+          type: string
+          format: password
+          description: 密码
+          minLength: 6
+          maxLength: 20
+          example: "password123"
+        phone:
+          type: string
+          description: 手机号码
+          pattern: '^1[3-9]\d{9}$'
+          example: "13800138000"
+
+    # 更新用户请求
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 用户名
+          minLength: 1
+          maxLength: 50
+          example: "张三（已更新）"
+        phone:
+          type: string
+          description: 手机号码
+          pattern: '^1[3-9]\d{9}$'
+          example: "13900139000"
+
+    # 用户列表响应
+    UserListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 响应码
+          example: 200
+        message:
+          type: string
+          description: 响应消息
+          example: "成功"
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: 总记录数
+              example: 100
+            page:
+              type: integer
+              description: 当前页码
+              example: 1
+            size:
+              type: integer
+              description: 每页数量
+              example: 10
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+
+    # 统一 API 响应格式
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 响应码（200 表示成功）
+          example: 200
+        message:
+          type: string
+          description: 响应消息
+          example: "成功"
+        data:
+          description: 响应数据（根据接口不同而变化）
+          oneOf:
+            - $ref: '#/components/schemas/User'
+            - type: object
+            - type: array
+            - type: null
+
+    # 错误信息
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 错误码
+          example: 400
+        message:
+          type: string
+          description: 错误消息
+          example: "请求参数错误"
+        details:
+          type: array
+          items:
+            type: string
+          description: 错误详情列表
+          example:
+            - "邮箱格式不正确"
+            - "密码长度必须在 6-20 之间"
+
+  # 响应模板
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            message: "请求参数错误"
+            details:
+              - "邮箱格式不正确"
+    
+    Unauthorized:
+      description: 未授权访问
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            code: 401
+            message: "未授权，请先登录"
+            data: null
+    
+    InternalServerError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            code: 500
+            message: "服务器内部错误"
+            data: null
+

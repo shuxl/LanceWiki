@@ -23,3 +23,6 @@ Setting > Editor > Live Templates
 
 # 4 自定义快捷键
 ![](img/Pasted%20image%2020240329220139.png)
+
+# 软换行
+![](img/Pasted%20image%2020251030180335.png)

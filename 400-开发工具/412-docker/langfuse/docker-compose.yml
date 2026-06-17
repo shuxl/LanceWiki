@@ -1,0 +1,250 @@
+services:
+  # Langfuse Web 服务（UI + API）
+  langfuse-web:
+    image: ghcr.io/langfuse/langfuse:latest
+    platform: linux/arm64  # Mac M1/M3 芯片使用 ARM64 架构
+    container_name: langfuse-web
+    restart: unless-stopped
+    # 使容器内能访问宿主机（PostgreSQL/Redis 在宿主机或其它容器时用 host.docker.internal）
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3000:3000"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      # PostgreSQL 连接（使用外部已有服务，必须显式传入否则容器可能用默认 5432）
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+      # Redis 连接（使用外部已有服务）
+      REDIS_CONNECTION_STRING: ${REDIS_CONNECTION_STRING}
+      # ClickHouse 配置
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-clickhouse}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhousepassword}
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-default}
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      LANGFUSE_AUTO_CLICKHOUSE_MIGRATION_DISABLED: "false"
+      
+      # S3/Blob 存储配置（使用 MinIO）
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: ${LANGFUSE_S3_EVENT_UPLOAD_BUCKET:-langfuse-events}
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: ${LANGFUSE_S3_MEDIA_UPLOAD_BUCKET:-langfuse-media}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: ${LANGFUSE_S3_EVENT_UPLOAD_REGION:-us-east-1}
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: ${LANGFUSE_S3_MEDIA_UPLOAD_REGION:-us-east-1}
+      
+      # 批量导出配置（Batch Export）
+      LANGFUSE_S3_BATCH_EXPORT_ENABLED: ${LANGFUSE_S3_BATCH_EXPORT_ENABLED:-true}
+      LANGFUSE_S3_BATCH_EXPORT_BUCKET: ${LANGFUSE_S3_BATCH_EXPORT_BUCKET:-langfuse-exports}
+      LANGFUSE_S3_BATCH_EXPORT_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_BATCH_EXPORT_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      LANGFUSE_S3_BATCH_EXPORT_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      LANGFUSE_S3_BATCH_EXPORT_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_BATCH_EXPORT_REGION: ${LANGFUSE_S3_BATCH_EXPORT_REGION:-us-east-1}
+      LANGFUSE_S3_BATCH_EXPORT_PREFIX: ${LANGFUSE_S3_BATCH_EXPORT_PREFIX:-exports/}
+      
+      # 认证和安全配置（从 .env 文件读取）
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      SALT: ${SALT}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      
+      # 功能开关
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
+      
+      # 日志配置
+      LANGFUSE_LOG_LEVEL: ${LANGFUSE_LOG_LEVEL:-info}
+      LANGFUSE_LOG_FORMAT: ${LANGFUSE_LOG_FORMAT:-text}
+      
+      # Node.js 内存配置（Mac M1 优化）
+      NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=4096}
+    volumes:
+      - langfuse_web_data:/home/langfuse
+    healthcheck:
+      test: ["CMD-SHELL", "ip=$(hostname -i | awk '{print $1}') && wget --no-verbose --tries=1 --spider http://$$ip:3000/api/public/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # Langfuse Worker：处理事件队列、异步任务
+  langfuse-worker:
+    image: ghcr.io/langfuse/langfuse-worker:latest
+    platform: linux/arm64  # Mac M1/M3 芯片使用 ARM64 架构
+    container_name: langfuse-worker
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      langfuse-web:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      # PostgreSQL 连接（必须与 langfuse-web 一致，显式传入）
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+      REDIS_CONNECTION_STRING: ${REDIS_CONNECTION_STRING}
+      # ClickHouse 配置
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-clickhouse}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhousepassword}
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-default}
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      LANGFUSE_AUTO_CLICKHOUSE_MIGRATION_DISABLED: "false"
+      
+      # S3/Blob 存储配置（使用 MinIO）
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: ${LANGFUSE_S3_EVENT_UPLOAD_BUCKET:-langfuse-events}
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: ${LANGFUSE_S3_MEDIA_UPLOAD_BUCKET:-langfuse-media}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: ${LANGFUSE_S3_EVENT_UPLOAD_REGION:-us-east-1}
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: ${LANGFUSE_S3_MEDIA_UPLOAD_REGION:-us-east-1}
+      
+      # 批量导出配置（Batch Export）
+      LANGFUSE_S3_BATCH_EXPORT_ENABLED: ${LANGFUSE_S3_BATCH_EXPORT_ENABLED:-true}
+      LANGFUSE_S3_BATCH_EXPORT_BUCKET: ${LANGFUSE_S3_BATCH_EXPORT_BUCKET:-langfuse-exports}
+      LANGFUSE_S3_BATCH_EXPORT_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_BATCH_EXPORT_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      LANGFUSE_S3_BATCH_EXPORT_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      LANGFUSE_S3_BATCH_EXPORT_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_BATCH_EXPORT_REGION: ${LANGFUSE_S3_BATCH_EXPORT_REGION:-us-east-1}
+      LANGFUSE_S3_BATCH_EXPORT_PREFIX: ${LANGFUSE_S3_BATCH_EXPORT_PREFIX:-exports/}
+      
+      # 认证和安全配置（从 .env 文件读取，必须与 web 服务一致）
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      SALT: ${SALT}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      
+      # 功能开关
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
+      
+      # 日志配置
+      LANGFUSE_LOG_LEVEL: ${LANGFUSE_LOG_LEVEL:-info}
+      LANGFUSE_LOG_FORMAT: ${LANGFUSE_LOG_FORMAT:-text}
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  # ClickHouse：用于 OLAP 存储（traces、observations 等）
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    platform: linux/arm64  # Mac M1/M3 芯片使用 ARM64 架构
+    container_name: langfuse-clickhouse
+    restart: unless-stopped
+    ports:
+      - "8123:8123"  # HTTP 接口
+      - "9000:9000"  # Native 接口
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-default}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-clickhouse}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhousepassword}
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # MinIO：用作 S3 兼容的对象存储（用于事件和媒体文件）
+  minio:
+    image: minio/minio:latest
+    platform: linux/arm64  # Mac M1/M3 芯片使用 ARM64 架构
+    container_name: langfuse-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "9002:9000"  # S3 API 端口（宿主机端口改为 9002，避免与 ClickHouse 的 9000 端口冲突）
+      - "9001:9001"  # MinIO 控制台端口
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+volumes:
+  langfuse_web_data:
+    driver: local
+  clickhouse_data:
+    driver: local
+  clickhouse_logs:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  default:
+    name: langfuse-network
+    driver: bridge
+  # 如果需要连接到外部 Redis 和 PostgreSQL 容器，取消下面的注释
+  # external_redis:
+  #   name: redis_app-network
+  #   external: true
+  # external_postgres:
+  #   name: bridge
+  #   external: true
